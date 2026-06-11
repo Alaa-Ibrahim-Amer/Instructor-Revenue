@@ -1,125 +1,59 @@
-# Instructor Revenue 
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-A financial ledger system for an LMS platform that handles subscription revenue allocation to instructors, monthly payouts, and failure-safe money movement.
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
----
+## About Laravel
 
-## Setup Instructions
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-### Requirements
-- PHP 8.2+
-- MySQL 8+
-- Composer
-- Node.js 18+
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-### Installation
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-```bash
-# Clone the repository
-git clone <repo-url>
-cd instructor-revenue
+## Learning Laravel
 
-# Install dependencies
-composer install
-npm install && npm run build
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
 
-# Environment setup
-cp .env.example .env
-php artisan key:generate
+If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-# Configure your .env
-# DB_DATABASE, DB_USERNAME, DB_PASSWORD
-# PLATFORM_REVENUE_CUT_PERCENTAGE=30
+## Laravel Sponsors
 
-# Run migrations
-php artisan migrate
+We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
 
-# Seed demo data
-php artisan db:seed --class=DemoSeeder
+### Premium Partners
 
-# Start the queue worker
-php artisan queue:work
+- **[Vehikl](https://vehikl.com)**
+- **[Tighten Co.](https://tighten.co)**
+- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
+- **[64 Robots](https://64robots.com)**
+- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
+- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
+- **[Redberry](https://redberry.international/laravel-development)**
+- **[Active Logic](https://activelogic.com)**
 
-# Start the server
-php artisan serve
-```
+## Contributing
 
-### Docker (Optional)
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-```bash
-docker-compose up -d
-docker-compose exec app php artisan migrate
-docker-compose exec app php artisan db:seed --class=DemoSeeder
-```
+## Code of Conduct
 
----
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-## How to Run Tests
+## Security Vulnerabilities
 
-```bash
-# All tests
-php artisan test
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-# Or with Pest directly
-./vendor/bin/pest
+## License
 
-# Specific test file
-./vendor/bin/pest tests/Unit/RevenueAllocationTest.php
-
-# With coverage
-./vendor/bin/pest --coverage
-```
-
----
-
-## Key Artisan Commands
-
-```bash
-# Run daily revenue allocation (normally scheduled)
-php artisan allocations:run --date=2024-01-15
-
-# Run monthly payouts
-php artisan payouts:run
-
-# Check payout status (for timed-out transactions)
-php artisan payouts:check-pending
-```
-
----
-
-## Assumptions Made
-
-### Revenue Allocation
-1. Only courses accessed by the student count toward instructor share calculation — instructors with unaccessed courses receive nothing from that subscription payment.
-2. Allocation is **proportional to courses accessed** — if a student accessed 3 of Instructor A's courses and 1 of Instructor B's, A gets 75% of the instructor pool.
-3. The platform cut is taken first; instructors split the remainder.
-4. Rounding remainders (from integer cent division) go into a platform operations account for future use (e.g. rewards, promotions).
-5. Allocation happens daily — the subscription fee is divided across the days of the term (daily_rate = amount_paid / term_days).
-6. Courses accessed on day one are treated the same as any other day in the base implementation. A weighted "day-one bonus" multiplier is noted as a future enhancement.
-
-### Subscriptions & Refunds
-7. Students pay upfront for the full term on day one.
-8. Mid-term **cancellation**: the unused portion of the subscription is refunded to the student proportionally. Allocations stop at cancellation date; already-allocated earnings are kept.
-9. **Full refunds** are human-initiated only (admin decision), not automated.
-10. Refund ownership: platform fault → platform absorbs loss, instructor keeps earnings. Instructor fault → flagged for manual resolution. Full automated recovery is a future plan.
-
-### Payouts
-11. Payout frequency is monthly, regardless of allocation frequency.
-12. An instructor must have an outstanding balance > 0 to receive a payout.
-13. Each payout covers all pending daily allocations up to the payout date.
-
-### External Payment Provider
-14. The mock provider can succeed, fail, or time out after already moving money.
-15. On timeout, the system stores the transaction ID before calling the provider and uses a status check on retry — never blindly retrying a payment.
-
----
-
-## Filament Admin Panel
-
-Visit `/admin` after seeding to access:
-- **Instructor Balances** — view total earned, total paid, outstanding per instructor
-- **Payout History** — per-instructor payout log with status badges
-
-Default admin credentials (seeded):
-- Email: `admin@example.com`
-- Password: `password`
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
